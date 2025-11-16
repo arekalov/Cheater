@@ -57,7 +57,7 @@ private fun QuestionList(
         
         items(questions) { question ->
             QuestionCard(
-                text = question.text,
+                question = question,
                 onClick = { onQuestionClick(question.id) }
             )
         }
@@ -74,6 +74,7 @@ private fun QuestionListPreview() {
                     id = 1,
                     category = "random_vars",
                     text = "Как называются случайные величины, принимающие только отделенные друг от друга значения?",
+                    images = listOf("O_1.JPG"),
                     answers = listOf("дискретные"),
                     keywords = listOf("случайные", "величины", "значения")
                 ),
@@ -81,6 +82,7 @@ private fun QuestionListPreview() {
                     id = 2,
                     category = "random_vars",
                     text = "Какие величины являются непрерывными?",
+                    images = emptyList(),
                     answers = listOf("время ожидания", "температура воздуха"),
                     keywords = listOf("величины", "непрерывные")
                 )

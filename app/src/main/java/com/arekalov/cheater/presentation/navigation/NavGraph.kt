@@ -8,14 +8,24 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import com.arekalov.cheater.presentation.category.CategoryScreen
 import com.arekalov.cheater.presentation.detail.QuestionDetailScreen
+import com.arekalov.cheater.presentation.global_search.GlobalSearchScreen
+import com.arekalov.cheater.presentation.home.HomeScreen
 import com.arekalov.cheater.presentation.search.SearchScreen
 
 @Composable
 fun AppNavGraph(navController: NavHostController) {
     SwipeDismissableNavHost(
         navController = navController,
-        startDestination = "categories"
+        startDestination = "home"
     ) {
+        composable("home") {
+            HomeScreen(navController = navController)
+        }
+        
+        composable("global_search") {
+            GlobalSearchScreen(navController = navController)
+        }
+        
         composable("categories") {
             CategoryScreen(navController = navController)
         }

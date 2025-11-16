@@ -63,33 +63,49 @@ private fun QuestionDetail(question: Question) {
             )
         }
         
-        // Изображения
-        question.images.forEach { imageName ->
-            item {
-                ImageItem(imageName = imageName)
-            }
-        }
-        
-        // Ответы
-        if (question.answers.isNotEmpty()) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Ответы:",
-                    style = MaterialTheme.typography.caption1,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-            }
-            
-            question.answers.forEach { answer ->
+        // Если есть изображения - показать картинку + ответ для каждой
+        if (question.images.isNotEmpty()) {
+            question.images.forEachIndexed { index, imageName ->
+                // Картинка
                 item {
+                    ImageItem(imageName = imageName)
+                }
+                
+                // Ответ к этой картинке (если есть)
+                if (index < question.answers.size) {
+                    item {
+                        Text(
+                            text = "→ ${question.answers[index]}",
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.colors.primary,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                        )
+                    }
+                }
+            }
+        } else {
+            // Если нет картинок - просто показать все ответы
+            if (question.answers.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "• $answer",
-                        style = MaterialTheme.typography.body2,
-                        color = MaterialTheme.colors.primary,
-                        modifier = Modifier.padding(vertical = 2.dp)
+                        text = "Ответы:",
+                        style = MaterialTheme.typography.caption1,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(bottom = 4.dp)
                     )
+                }
+                
+                question.answers.forEach { answer ->
+                    item {
+                        Text(
+                            text = "• $answer",
+                            style = MaterialTheme.typography.body2,
+                            color = MaterialTheme.colors.primary,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        )
+                    }
                 }
             }
         }
@@ -141,13 +157,30 @@ private fun QuestionDetailPreview() {
             question = Question(
                 id = 1,
                 category = "math_expectation",
-                text = "Пусть xi - одно из n значений, которые может принимать дискретная случайная величина X, а pi - вероятность того, что Х = xi (при i = 1,2,..n). Укажите, что рассчитвается с помощью формулы.",
-                images = emptyList(),
+                text = "Пусть xi - одно из n значений, которые может принимать дискретная случайная величина X. Укажите варианты для каждого графика:",
+                images = listOf("O_1.JPG", "O_2.JPG"),
                 answers = listOf(
                     "Математическое ожидание X.",
-                    "Первый начальный момент X."
+                    "Дисперсия X."
                 ),
                 keywords = listOf("значений", "дискретная", "случайная", "величина")
+            )
+        )
+    }
+}
+
+@Preview(device = "id:wearos_small_round", showSystemUi = true)
+@Composable
+private fun QuestionDetailNoImagesPreview() {
+    CheaterTheme {
+        QuestionDetail(
+            question = Question(
+                id = 2,
+                category = "random_vars",
+                text = "Как называются случайные величины, принимающие только отделенные друг от друга значения?",
+                images = emptyList(),
+                answers = listOf("дискретные"),
+                keywords = listOf("случайные", "величины")
             )
         )
     }
