@@ -14,4 +14,20 @@
 .cxx
 local.properties
 
+# Parser files (не коммитим в основную ветку)
 etest-parser/
+
+# Python virtual environment
+etest-parser/venv/
+
+# Build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Keystore files (ВАЖНО: не коммитить!)
+*.jks
+*.keystore
+keystore.properties
+

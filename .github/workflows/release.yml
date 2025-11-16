@@ -1,0 +1,58 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+        
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+      
+    - name: Build Release APK
+      run: ./gradlew assembleRelease --stacktrace
+      
+    - name: Get version name
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: app/build/outputs/apk/release/app-release.apk
+        name: Release ${{ steps.get_version.outputs.VERSION }}
+        body: |
+          ## Cheater - Wear OS App
+          
+          ### Что нового:
+          - Релизная версия приложения для Wear OS
+          - 1715 уникальных вопросов
+          - 14 категорий
+          - Глобальный поиск
+          - Темно-серая тема
+          
+          ### Установка:
+          1. Скачать `app-release.apk`
+          2. Установить на часы через `adb install app-release.apk`
+          
+          ### Требования:
+          - Wear OS API 30+
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
