@@ -3,6 +3,7 @@ package com.arekalov.cheater.data.repository
 import com.arekalov.cheater.data.datasource.LocalDataSource
 import com.arekalov.cheater.data.model.Category
 import com.arekalov.cheater.data.model.Question
+import com.arekalov.cheater.data.search.SearchEngine
 import com.arekalov.cheater.di.IoDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
@@ -12,6 +13,7 @@ import javax.inject.Singleton
 @Singleton
 class QuestionRepository @Inject constructor(
     private val localDataSource: LocalDataSource,
+    private val searchEngine: SearchEngine,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     suspend fun getAllCategories(): List<Category> = 
@@ -27,13 +29,8 @@ class QuestionRepository @Inject constructor(
     
     suspend fun searchQuestions(query: String): List<Question> = 
         withContext(ioDispatcher) {
-            if (query.isBlank()) return@withContext emptyList()
-            
-            val lowerQuery = query.lowercase()
-            localDataSource.getAppData().questions.filter { question ->
-                question.text.lowercase().contains(lowerQuery) ||
-                question.keywords.any { it.contains(lowerQuery) }
-            }
+            val allQuestions = localDataSource.getAppData().questions
+            searchEngine.search(allQuestions, query)
         }
     
     suspend fun getQuestionById(questionId: Int): Question? =
