@@ -7,6 +7,9 @@ plugins {
     alias(libs.plugins.hilt.android)
 }
 
+import java.util.Properties
+import java.io.FileInputStream
+
 android {
     namespace = "com.arekalov.cheater"
     compileSdk = 36
@@ -18,6 +21,28 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    
+    signingConfigs {
+        create("release") {
+            // Для локальной сборки
+            val keystorePropertiesFile = rootProject.file("keystore.properties")
+            if (keystorePropertiesFile.exists()) {
+                val keystoreProperties = Properties()
+                keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+                
+                storeFile = rootProject.file(keystoreProperties.getProperty("KEYSTORE_FILE"))
+                storePassword = keystoreProperties.getProperty("KEYSTORE_PASSWORD")
+                keyAlias = keystoreProperties.getProperty("KEY_ALIAS")
+                keyPassword = keystoreProperties.getProperty("KEY_PASSWORD")
+            } else {
+                // Для GitHub Actions (из environment variables)
+                storeFile = System.getenv("KEYSTORE_FILE")?.let { file(it) }
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
 
     buildTypes {
         release {
@@ -26,6 +51,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     

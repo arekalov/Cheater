@@ -25,11 +25,36 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
+    - name: Decode keystore
+      run: |
+        echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > $GITHUB_WORKSPACE/cheater-release-key.jks
+        
     - name: Build Release APK
+      env:
+        KEYSTORE_FILE: ${{ github.workspace }}/cheater-release-key.jks
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: ./gradlew assembleRelease --stacktrace
       
+    - name: List APK files
+      run: ls -la app/build/outputs/apk/release/
+      
     - name: Rename APK
-      run: cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/cheater.apk
+      run: |
+        cd app/build/outputs/apk/release/
+        # После подписи файл должен называться app-release.apk
+        if [ -f "app-release.apk" ]; then
+          cp app-release.apk cheater.apk
+          echo "Found signed APK"
+        elif [ -f "app-release-unsigned.apk" ]; then
+          cp app-release-unsigned.apk cheater.apk
+          echo "Found unsigned APK"
+        else
+          echo "APK file not found!"
+          ls -la
+          exit 1
+        fi
       
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
