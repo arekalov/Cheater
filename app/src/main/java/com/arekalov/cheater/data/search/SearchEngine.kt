@@ -22,9 +22,28 @@ class SearchEngine @Inject constructor() {
         val normalizedQuery = normalizeText(query)
         val queryWords = normalizedQuery.split("\\s+".toRegex()).filter { it.isNotEmpty() }
         
-        // Вычисляем релевантность для каждого вопроса
-        val scoredQuestions = questions.mapNotNull { question ->
-            val score = calculateRelevanceScore(question, normalizedQuery, queryWords)
+        // Быстрая предварительная фильтрация - только точные совпадения
+        val candidateQuestions = questions.filter { question ->
+            val questionText = normalizeText(question.text)
+            val normalizedKeywords = question.keywords.map { normalizeText(it) }
+            
+            // Хотя бы одно слово из запроса должно точно совпасть
+            queryWords.any { word ->
+                questionText.contains(word) || 
+                normalizedKeywords.any { it.contains(word) }
+            }
+        }
+        
+        // Если найдено слишком много кандидатов, используем только точный поиск
+        val useFullScoring = candidateQuestions.size <= 500
+        
+        // Вычисляем релевантность только для кандидатов
+        val scoredQuestions = candidateQuestions.mapNotNull { question ->
+            val score = if (useFullScoring) {
+                calculateRelevanceScore(question, normalizedQuery, queryWords)
+            } else {
+                calculateFastRelevanceScore(question, normalizedQuery, queryWords)
+            }
             if (score > 0) {
                 ScoredQuestion(question, score)
             } else {
@@ -48,6 +67,56 @@ class SearchEngine @Inject constructor() {
             .replace(Regex("\\s+"), " ") // Множественные пробелы заменяем на один
     }
     
+    /**
+     * Быстрый расчёт релевантности без fuzzy search
+     */
+    private fun calculateFastRelevanceScore(
+        question: Question,
+        fullQuery: String,
+        queryWords: List<String>
+    ): Double {
+        val questionText = normalizeText(question.text)
+        var score = 0.0
+        
+        // 1. Точное совпадение полного запроса
+        if (questionText.contains(fullQuery)) {
+            score += 100.0
+        }
+        
+        // 2. Проверка каждого слова из запроса
+        for (word in queryWords) {
+            // Точное совпадение слова в тексте вопроса
+            if (questionText.contains(word)) {
+                score += 50.0
+            }
+            
+            // Точное совпадение в ключевых словах
+            val exactKeywordMatch = question.keywords.any { 
+                normalizeText(it).contains(word) 
+            }
+            if (exactKeywordMatch) {
+                score += 40.0
+            }
+        }
+        
+        // 3. Бонус за совпадение всех слов
+        val allWordsFound = queryWords.all { word ->
+            questionText.contains(word) || 
+            question.keywords.any { normalizeText(it).contains(word) }
+        }
+        if (allWordsFound && queryWords.size > 1) {
+            score += 30.0
+        }
+        
+        // 4. Бонус за совпадение в начале текста
+        if (questionText.startsWith(fullQuery) || 
+            queryWords.isNotEmpty() && questionText.startsWith(queryWords[0])) {
+            score += 20.0
+        }
+        
+        return score
+    }
+    
     private fun calculateRelevanceScore(
         question: Question,
         fullQuery: String,
@@ -63,6 +132,21 @@ class SearchEngine @Inject constructor() {
         
         // 2. Проверка каждого слова из запроса
         for (word in queryWords) {
+            // Пропускаем очень короткие слова для fuzzy search
+            if (word.length < 4) {
+                // Только точное совпадение для коротких слов
+                if (questionText.contains(word)) {
+                    score += 50.0
+                }
+                val exactKeywordMatch = question.keywords.any { 
+                    normalizeText(it).contains(word) 
+                }
+                if (exactKeywordMatch) {
+                    score += 40.0
+                }
+                continue
+            }
+            
             // 2.1 Точное совпадение слова в тексте вопроса
             if (questionText.contains(word)) {
                 score += 50.0
@@ -76,18 +160,23 @@ class SearchEngine @Inject constructor() {
                 score += 40.0
             }
             
-            // 2.3 Fuzzy match в тексте вопроса
-            val fuzzyTextScore = findBestFuzzyMatch(word, questionText)
-            if (fuzzyTextScore > 0.7) {
-                score += fuzzyTextScore * 30.0
-            }
-            
-            // 2.4 Fuzzy match в ключевых словах
-            val fuzzyKeywordScore = question.keywords.maxOfOrNull { keyword ->
-                levenshteinSimilarity(word, normalizeText(keyword))
-            } ?: 0.0
-            if (fuzzyKeywordScore > 0.7) {
-                score += fuzzyKeywordScore * 25.0
+            // Fuzzy search только если нет точного совпадения
+            if (!questionText.contains(word) && !exactKeywordMatch) {
+                // 2.3 Fuzzy match в тексте вопроса (ограниченный)
+                val fuzzyTextScore = findBestFuzzyMatchOptimized(word, questionText)
+                if (fuzzyTextScore > 0.75) {
+                    score += fuzzyTextScore * 30.0
+                }
+                
+                // 2.4 Fuzzy match в ключевых словах (ограниченный)
+                val fuzzyKeywordScore = question.keywords
+                    .filter { it.length >= word.length - 2 && it.length <= word.length + 2 }
+                    .maxOfOrNull { keyword ->
+                        levenshteinSimilarity(word, normalizeText(keyword))
+                    } ?: 0.0
+                if (fuzzyKeywordScore > 0.75) {
+                    score += fuzzyKeywordScore * 25.0
+                }
             }
         }
         
@@ -107,6 +196,19 @@ class SearchEngine @Inject constructor() {
         }
         
         return score
+    }
+    
+    /**
+     * Оптимизированная версия fuzzy match - только для слов похожей длины
+     */
+    private fun findBestFuzzyMatchOptimized(word: String, text: String): Double {
+        val textWords = text.split("\\s+".toRegex())
+        return textWords
+            .filter { it.length >= word.length - 2 && it.length <= word.length + 2 }
+            .take(50) // Ограничиваем количество проверяемых слов
+            .maxOfOrNull { textWord ->
+                levenshteinSimilarity(word, textWord)
+            } ?: 0.0
     }
     
     /**
