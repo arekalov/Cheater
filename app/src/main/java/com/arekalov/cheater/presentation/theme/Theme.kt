@@ -33,5 +33,3 @@ fun CheaterTheme(content: @Composable () -> Unit) {
         content = content
     )
 }
-
-`
