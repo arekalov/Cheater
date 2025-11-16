@@ -77,19 +77,23 @@ private fun QuestionDetail(question: Question) {
                 // Ответ к этой картинке (если есть)
                 if (index < question.answers.size) {
                     item {
-                        Text(
-                            text = "Ответ: ",
-                            style = MaterialTheme.typography.caption2,
-                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
-                            modifier = Modifier.padding(top = 4.dp, bottom = 0.dp)
-                        )
-                        Text(
-                            text = question.answers[index],
-                            style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.onBackground,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(bottom = 12.dp)
-                        )
+                        Column(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Ответ:",
+                                style = MaterialTheme.typography.caption2,
+                                color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
+                                modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
+                            )
+                            Text(
+                                text = question.answers[index],
+                                style = MaterialTheme.typography.body2,
+                                color = MaterialTheme.colors.onBackground,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                        }
                     }
                 }
             }

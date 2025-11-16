@@ -93,6 +93,14 @@ private fun GlobalSearchContent(
                             .build()
                     )
                     RemoteInputIntentHelper.putRemoteInputsExtra(intent, remoteInputs)
+                    
+                    // Предзаполняем текущее значение запроса
+                    if (query.isNotEmpty()) {
+                        val bundle = Bundle()
+                        bundle.putCharSequence("search_input", query)
+                        RemoteInput.addResultsToIntent(remoteInputs.toTypedArray(), intent, bundle)
+                    }
+                    
                     launcher.launch(intent)
                 },
                 modifier = Modifier
