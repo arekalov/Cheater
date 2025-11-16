@@ -23,8 +23,16 @@ class QuestionRepository @Inject constructor(
     
     suspend fun getQuestionsByCategory(categoryId: String): List<Question> = 
         withContext(ioDispatcher) {
-            localDataSource.getAppData().questions
-                .filter { it.category == categoryId }
+            if (categoryId == "all") {
+                // Специальный случай: показать все вопросы, отсортированные по алфавиту
+                localDataSource.getAppData().questions
+                    .sortedBy { it.text.lowercase() }
+            } else {
+                // Для конкретной категории - фильтр + сортировка по алфавиту
+                localDataSource.getAppData().questions
+                    .filter { it.category == categoryId }
+                    .sortedBy { it.text.lowercase() }
+            }
         }
     
     suspend fun searchQuestions(query: String): List<Question> = 

@@ -28,6 +28,10 @@ fun HomeScreen(
         onCategoriesClick = {
             viewModel.handleIntent(HomeIntent.NavigateToCategories)
             navController.navigate("categories")
+        },
+        onAllQuestionsClick = {
+            // Навигация к экрану со всеми вопросами (используем поиск без категории)
+            navController.navigate("search/all")
         }
     )
 }
@@ -35,7 +39,8 @@ fun HomeScreen(
 @Composable
 private fun HomeContent(
     onSearchClick: () -> Unit,
-    onCategoriesClick: () -> Unit
+    onCategoriesClick: () -> Unit,
+    onAllQuestionsClick: () -> Unit
 ) {
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -82,6 +87,21 @@ private fun HomeContent(
                 )
             }
         }
+        
+        item {
+            Button(
+                onClick = onAllQuestionsClick,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                colors = ButtonDefaults.secondaryButtonColors()
+            ) {
+                Text(
+                    text = "Все вопросы",
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
     }
 }
 
@@ -91,7 +111,8 @@ private fun HomeScreenPreview() {
     CheaterTheme {
         HomeContent(
             onSearchClick = {},
-            onCategoriesClick = {}
+            onCategoriesClick = {},
+            onAllQuestionsClick = {}
         )
     }
 }

@@ -37,7 +37,7 @@ class CategoryViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
             try {
                 val categories = repository.getAllCategories()
-                    .sortedBy { it.name } // Сортировка по алфавиту
+                    // Порядок категорий задан в JSON (без сортировки)
                 _state.update { it.copy(categories = categories, isLoading = false) }
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message ?: "Unknown error", isLoading = false) }
