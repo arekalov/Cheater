@@ -28,15 +28,18 @@ jobs:
     - name: Build Release APK
       run: ./gradlew assembleRelease --stacktrace
       
+    - name: Rename APK
+      run: cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/cheater.apk
+      
     - name: Upload Release APK
       uses: actions/upload-artifact@v4
       with:
-        name: app-release
-        path: app/build/outputs/apk/release/app-release.apk
+        name: cheater-apk
+        path: app/build/outputs/apk/release/cheater.apk
         retention-days: 30
         
     - name: Get APK info
       run: |
-        echo "APK Size: $(du -h app/build/outputs/apk/release/app-release.apk | cut -f1)"
+        echo "APK Size: $(du -h app/build/outputs/apk/release/cheater.apk | cut -f1)"
         echo "Build completed successfully!"
 

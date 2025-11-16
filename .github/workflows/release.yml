@@ -26,6 +26,9 @@ jobs:
     - name: Build Release APK
       run: ./gradlew assembleRelease --stacktrace
       
+    - name: Rename APK
+      run: cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/cheater.apk
+      
     - name: Get version name
       id: get_version
       run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
@@ -33,7 +36,7 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: app/build/outputs/apk/release/app-release.apk
+        files: app/build/outputs/apk/release/cheater.apk
         name: Release ${{ steps.get_version.outputs.VERSION }}
         body: |
           ## Cheater - Wear OS App
@@ -46,8 +49,8 @@ jobs:
           - Темно-серая тема
           
           ### Установка:
-          1. Скачать `app-release.apk`
-          2. Установить на часы через `adb install app-release.apk`
+          1. Скачать `cheater.apk`
+          2. Установить на часы через `adb install cheater.apk`
           
           ### Требования:
           - Wear OS API 30+
