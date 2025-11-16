@@ -10,12 +10,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.*
 import com.arekalov.cheater.data.model.Question
 import com.arekalov.cheater.presentation.components.ErrorMessage
 import com.arekalov.cheater.presentation.components.LoadingIndicator
 import com.arekalov.cheater.presentation.components.QuestionCard
 import com.arekalov.cheater.presentation.theme.CheaterTheme
+import android.app.RemoteInput
+import android.os.Bundle
+import android.view.inputmethod.EditorInfo
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.wear.input.RemoteInputIntentHelper
+import androidx.wear.input.wearableExtender
 
 @Composable
 fun GlobalSearchScreen(
@@ -52,31 +60,58 @@ private fun GlobalSearchContent(
     onQueryChange: (String) -> Unit,
     onQuestionClick: (Int) -> Unit
 ) {
-    var searchText by remember { mutableStateOf(query) }
+    val listState = rememberScalingLazyListState()
+    
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        result.data?.let { data ->
+            val results: Bundle = RemoteInput.getResultsFromIntent(data)
+            val searchText: CharSequence? = results.getCharSequence("search_input")
+            searchText?.let {
+                onQueryChange(it.toString())
+            }
+        }
+    }
     
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
     ) {
         item {
-            OutlinedButton(
+            Chip(
                 onClick = { 
-                    // Открыть клавиатуру для ввода текста
-                    // На Wear OS используется речевой ввод или клавиатура часов
+                    val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
+                    val remoteInputs = listOf(
+                        RemoteInput.Builder("search_input")
+                            .setLabel("Поиск вопроса")
+                            .wearableExtender {
+                                setEmojisAllowed(false)
+                                setInputActionType(EditorInfo.IME_ACTION_DONE)
+                            }
+                            .build()
+                    )
+                    RemoteInputIntentHelper.putRemoteInputsExtra(intent, remoteInputs)
+                    launcher.launch(intent)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp)
-            ) {
-                Text(
-                    text = if (searchText.isEmpty()) "Введите текст..." else searchText,
-                    style = MaterialTheme.typography.caption1,
-                    textAlign = TextAlign.Center
-                )
-            }
+                    .padding(bottom = 8.dp),
+                label = {
+                    Text(
+                        text = if (query.isEmpty()) "Поиск..." else query,
+                        style = MaterialTheme.typography.caption1,
+                        maxLines = 2
+                    )
+                },
+                icon = {
+                    Text("🔍")
+                },
+                colors = ChipDefaults.primaryChipColors()
+            )
         }
         
-        // Простой text input для эмулятора/preview
         item {
             Text(
                 text = "Найдено: ${questions.size}",

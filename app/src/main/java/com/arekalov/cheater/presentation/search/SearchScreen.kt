@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.*
 import com.arekalov.cheater.data.model.Question
 import com.arekalov.cheater.presentation.components.ErrorMessage
@@ -43,8 +44,11 @@ private fun QuestionList(
     questions: List<Question>,
     onQuestionClick: (Int) -> Unit
 ) {
+    val listState = rememberScalingLazyListState()
+    
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(top = 8.dp, bottom = 40.dp)
     ) {
         item {

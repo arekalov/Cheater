@@ -72,6 +72,7 @@ android {
 dependencies {
     // Wear OS
     implementation(libs.play.services.wearable)
+    implementation(libs.wear.input)
     
     // Compose BOM
     implementation(platform(libs.compose.bom))

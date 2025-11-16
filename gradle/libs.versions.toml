@@ -5,6 +5,7 @@ ksp = "2.0.21-1.0.28"
 playServicesWearable = "19.0.0"
 composeBom = "2024.11.00"
 wearCompose = "1.4.0"
+wear = "1.2.0"
 hilt = "2.51.1"
 hiltNavigationCompose = "1.2.0"
 coroutines = "1.9.0"
@@ -28,6 +29,9 @@ compose-foundation = { group = "androidx.compose.foundation", name = "foundation
 wear-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "wearCompose" }
 wear-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "wearCompose" }
 wear-compose-navigation = { group = "androidx.wear.compose", name = "compose-navigation", version.ref = "wearCompose" }
+
+# Wear Input
+wear-input = { group = "androidx.wear", name = "wear-input", version.ref = "wear" }
 
 # Hilt
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }

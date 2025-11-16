@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.arekalov.cheater.data.model.Question
@@ -40,9 +41,11 @@ fun QuestionDetailScreen(
 @Composable
 private fun QuestionDetail(question: Question) {
     val context = LocalContext.current
+    val listState = rememberScalingLazyListState()
     
     ScalingLazyColumn(
         modifier = Modifier.fillMaxSize(),
+        state = listState,
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
     ) {
         // Текст вопроса
@@ -75,11 +78,17 @@ private fun QuestionDetail(question: Question) {
                 if (index < question.answers.size) {
                     item {
                         Text(
-                            text = "→ ${question.answers[index]}",
+                            text = "Ответ: ",
+                            style = MaterialTheme.typography.caption2,
+                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier.padding(top = 4.dp, bottom = 0.dp)
+                        )
+                        Text(
+                            text = question.answers[index],
                             style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.primary,
+                            color = MaterialTheme.colors.onBackground,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 4.dp, bottom = 12.dp)
+                            modifier = Modifier.padding(bottom = 12.dp)
                         )
                     }
                 }
@@ -92,7 +101,7 @@ private fun QuestionDetail(question: Question) {
                     Text(
                         text = "Ответы:",
                         style = MaterialTheme.typography.caption1,
-                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
                         modifier = Modifier.padding(bottom = 4.dp)
                     )
                 }
@@ -102,7 +111,8 @@ private fun QuestionDetail(question: Question) {
                         Text(
                             text = "• $answer",
                             style = MaterialTheme.typography.body2,
-                            color = MaterialTheme.colors.primary,
+                            color = MaterialTheme.colors.onBackground,
+                            fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(vertical = 2.dp)
                         )
                     }
