@@ -19,11 +19,38 @@ class GlobalSearchViewModel @Inject constructor(
     private val _state = MutableStateFlow(GlobalSearchState())
     val state: StateFlow<GlobalSearchState> = _state.asStateFlow()
     
+    init {
+        loadTotalCount()
+    }
+    
+    private fun loadTotalCount() {
+        viewModelScope.launch {
+            try {
+                val totalCount = repository.getTotalQuestionsCount()
+                _state.update { it.copy(totalQuestionsCount = totalCount) }
+            } catch (e: Exception) {
+                // Игнорируем ошибку, счетчик останется 0
+            }
+        }
+    }
+    
     fun handleIntent(intent: GlobalSearchIntent) {
         when (intent) {
             is GlobalSearchIntent.Search -> search(intent.query)
             is GlobalSearchIntent.SelectQuestion -> {
                 // Navigation handled in Screen
+            }
+            is GlobalSearchIntent.ToggleImagesFilter -> toggleImagesFilter(intent.enabled)
+        }
+    }
+    
+    private fun toggleImagesFilter(enabled: Boolean) {
+        viewModelScope.launch {
+            _state.update { it.copy(showOnlyWithImages = enabled) }
+            // Повторно применить поиск с новым фильтром
+            val currentQuery = _state.value.query
+            if (currentQuery.isNotBlank()) {
+                applyFilters(currentQuery)
             }
         }
     }
@@ -35,18 +62,27 @@ class GlobalSearchViewModel @Inject constructor(
                 if (query.isBlank()) {
                     _state.update { it.copy(questions = emptyList(), isLoading = false) }
                 } else {
-                    val questions = repository.searchQuestions(query)
-                    _state.update { 
-                        it.copy(
-                            questions = questions, 
-                            isLoading = false,
-                            showEmptyMessage = questions.isEmpty()
-                        ) 
-                    }
+                    applyFilters(query)
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(error = e.message ?: "Unknown error", isLoading = false) }
             }
+        }
+    }
+    
+    private suspend fun applyFilters(query: String) {
+        val allQuestions = repository.searchQuestions(query)
+        val filteredQuestions = if (_state.value.showOnlyWithImages) {
+            allQuestions.filter { it.images.isNotEmpty() }
+        } else {
+            allQuestions
+        }
+        _state.update { 
+            it.copy(
+                questions = filteredQuestions, 
+                isLoading = false,
+                showEmptyMessage = filteredQuestions.isEmpty()
+            ) 
         }
     }
 }

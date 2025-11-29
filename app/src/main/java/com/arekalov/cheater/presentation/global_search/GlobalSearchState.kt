@@ -7,6 +7,8 @@ data class GlobalSearchState(
     val query: String = "",
     val isLoading: Boolean = false,
     val error: String? = null,
-    val showEmptyMessage: Boolean = false
+    val showEmptyMessage: Boolean = false,
+    val totalQuestionsCount: Int = 0,
+    val showOnlyWithImages: Boolean = false
 )
 

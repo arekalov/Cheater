@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Card
@@ -36,7 +37,7 @@ fun QuestionCard(
             Text(
                 text = question.text,
                 style = MaterialTheme.typography.caption1.copy(fontSize = 11.sp),
-                modifier = Modifier.padding(bottom = if (question.images.isNotEmpty()) 6.dp else 0.dp)
+                modifier = Modifier.padding(bottom = if (question.images.isNotEmpty() || shouldShowAnswer(question)) 6.dp else 0.dp)
             )
             
             // Изображения если есть
@@ -45,8 +46,53 @@ fun QuestionCard(
                     ImagePreview(imageName = imageName)
                 }
             }
+            
+            // Показываем ответ сразу, если это вопрос с одним ответом (без множественных картинок)
+            if (shouldShowAnswer(question)) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Ответ:",
+                    style = MaterialTheme.typography.caption2.copy(fontSize = 9.sp),
+                    color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+                question.answers.forEach { answer ->
+                    Text(
+                        text = "• $answer",
+                        style = MaterialTheme.typography.caption2.copy(fontSize = 10.sp),
+                        color = MaterialTheme.colors.onBackground,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 1.dp)
+                    )
+                }
+            }
         }
     }
+}
+
+/**
+ * Определяет, нужно ли показывать ответ сразу в карточке
+ * Показываем ответ, если это не вопрос с несколькими картинками (где каждой картинке соответствует свой ответ)
+ */
+private fun shouldShowAnswer(question: Question): Boolean {
+    // Если нет картинок - показываем ответ
+    if (question.images.isEmpty()) {
+        return question.answers.isNotEmpty()
+    }
+    
+    // Если картинок меньше или равно одной, и ответ один - показываем
+    if (question.images.size <= 1 && question.answers.size == 1) {
+        return true
+    }
+    
+    // Если количество картинок не совпадает с количеством ответов - это не "вопрос с выбором для каждой картинки"
+    // значит можно показать ответ
+    if (question.images.size != question.answers.size) {
+        return question.answers.isNotEmpty()
+    }
+    
+    // Если картинок несколько и они совпадают с количеством ответов - не показываем (это вопрос с вариантами)
+    return false
 }
 
 @Composable

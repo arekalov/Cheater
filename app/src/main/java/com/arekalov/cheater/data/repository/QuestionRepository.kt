@@ -46,5 +46,10 @@ class QuestionRepository @Inject constructor(
             localDataSource.getAppData().questions
                 .find { it.id == questionId }
         }
+    
+    suspend fun getTotalQuestionsCount(): Int =
+        withContext(ioDispatcher) {
+            localDataSource.getAppData().questions.size
+        }
 }
 

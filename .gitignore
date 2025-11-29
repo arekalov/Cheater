@@ -30,4 +30,5 @@ etest-parser/venv/
 *.jks
 *.keystore
 keystore.properties
+keystore.base64
 

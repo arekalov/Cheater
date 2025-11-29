@@ -42,8 +42,10 @@ fun GlobalSearchScreen(
         else -> GlobalSearchContent(
             query = state.query,
             questions = state.questions,
+            showOnlyWithImages = state.showOnlyWithImages,
             showEmptyMessage = state.showEmptyMessage,
             onQueryChange = { viewModel.handleIntent(GlobalSearchIntent.Search(it)) },
+            onToggleImagesFilter = { viewModel.handleIntent(GlobalSearchIntent.ToggleImagesFilter(it)) },
             onQuestionClick = { questionId ->
                 viewModel.handleIntent(GlobalSearchIntent.SelectQuestion(questionId))
                 navController.navigate("question/$questionId")
@@ -56,8 +58,10 @@ fun GlobalSearchScreen(
 private fun GlobalSearchContent(
     query: String,
     questions: List<Question>,
+    showOnlyWithImages: Boolean,
     showEmptyMessage: Boolean,
     onQueryChange: (String) -> Unit,
+    onToggleImagesFilter: (Boolean) -> Unit,
     onQuestionClick: (Int) -> Unit
 ) {
     val listState = rememberScalingLazyListState()
@@ -79,6 +83,31 @@ private fun GlobalSearchContent(
         state = listState,
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp)
     ) {
+        // Тогл для фильтрации вопросов с картинками
+        item {
+            ToggleChip(
+                checked = showOnlyWithImages,
+                onCheckedChange = onToggleImagesFilter,
+                label = {
+                    Text(
+                        text = "С картинками",
+                        style = MaterialTheme.typography.caption1,
+                        maxLines = 1
+                    )
+                },
+                toggleControl = {
+                    Icon(
+                        imageVector = ToggleChipDefaults.switchIcon(checked = showOnlyWithImages),
+                        contentDescription = if (showOnlyWithImages) "Включено" else "Выключено"
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                enabled = query.isNotBlank()
+            )
+        }
+        
         item {
             Chip(
                 onClick = { 
@@ -174,8 +203,10 @@ private fun GlobalSearchContentPreview() {
                     keywords = listOf("величины", "дискретные")
                 )
             ),
+            showOnlyWithImages = false,
             showEmptyMessage = false,
             onQueryChange = {},
+            onToggleImagesFilter = {},
             onQuestionClick = {}
         )
     }
