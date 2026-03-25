@@ -19,6 +19,7 @@ etest-parser/
 
 # Python virtual environment
 etest-parser/venv/
+scripts/import_ksgovnoznayte/.venv/
 
 # Build outputs
 *.apk

@@ -18,7 +18,7 @@ class LocalDataSource @Inject constructor(
     
     suspend fun getAppData(): AppData = withContext(Dispatchers.IO) {
         cachedData ?: run {
-            val jsonString = context.assets.open("questions.json")
+            val jsonString = context.assets.open("questions_nets.json")
                 .bufferedReader().use { it.readText() }
             json.decodeFromString<AppData>(jsonString).also {
                 cachedData = it
